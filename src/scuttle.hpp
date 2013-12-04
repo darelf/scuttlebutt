@@ -27,8 +27,11 @@ class ScuttleButt {
     vector<Message> getUpdateHistory(map<string,Message> &, map<string,double>);
     map<string,Message> getStore();
   
+    void setSyncCallback(void(*cb)());
+    
   private:
     string client_id;
     map<string,double> sources;
+    void (*sync)();
 };
 

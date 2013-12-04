@@ -4,6 +4,10 @@ bool sort_function (const Message & a, const Message & b) {
   return (a.version < b.version) || (a.id < b.id);
 }
 
+void ScuttleButt::setSyncCallback(void(*cb)()) {
+  sync = cb;
+}
+
 bool ScuttleButt::filter(const Message & update, map<string,double> source_list) {
   string src = update.id;
   double ts = update.version;
@@ -71,12 +75,16 @@ string ScuttleButt::getDigest() {
 }
 
 void ScuttleButt::parseLine(const string & str, void(*callbackFunction)(const string &, const Message &)) {
-  //cout << str << endl;
+  if (str == "\"SYNC\"") {
+    if (sync) sync();
+    return;
+  }
+  
   json_t * root;
   json_error_t err;
   root = json_loads(str.c_str(), 0, &err);
   if (!root) {
-    cerr << "problem parsing: " << str << endl;
+    cerr << "problem parsing (" << str.length() << "): " << str << endl;
     return;
   }
   if (json_is_object(root)) {
@@ -110,14 +118,15 @@ void ScuttleButt::parseLine(const string & str, void(*callbackFunction)(const st
       sources[id_value] = ts_value;
     }
 
-    Message m;
-    m.id = id_value;
-    m.version = ts_value;
-    char * message_payload = json_dumps(value, JSON_COMPACT);
-    m.value = message_payload;
-    free(message_payload);
-    if (callbackFunction)
+    if (callbackFunction) {
+      Message m;
+      m.id = id_value;
+      m.version = ts_value;
+      char * message_payload = json_dumps(value, JSON_COMPACT);
+      m.value = message_payload;
+      free(message_payload);
       callbackFunction(json_string_value(key), m);
+    }
   }
   
   json_decref(root);
