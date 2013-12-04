@@ -10,4 +10,4 @@ If you want to just build the library, after using configure go into the
 `src/` directory and `make libscuttle.a`
 
 Otherwise it wants to build the test program `scuttlebutt`, whose source
-code is in `main.cpp` and requires
+code is in `main.cpp`.
