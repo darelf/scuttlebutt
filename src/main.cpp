@@ -10,7 +10,26 @@ map<string,Message> store; // Just a default, in-memory, store...
 
 uv_stream_t * stream;
 
-void applyUpdate(const string & key, const Message & m) {
+void outputStoreContents() {
+  for (map<string,Message>::iterator it = store.begin(); it != store.end(); ++it) {
+    cout << it->second.id << ": " << it->second.value << endl;
+  }
+}
+
+void outputHistoryContents(map<string,double> & source_list) {
+  vector<Message> hist = sc.getUpdateHistory(store, source_list);
+  for (vector<Message>::iterator it = hist.begin(); it != hist.end(); ++it) {
+    cout << it->value << endl;
+  }
+}
+
+// For this test, the payload should be an array whose first value is the key
+void applyUpdate(const Message & m) {
+  json_t * root;
+  json_error_t err;
+  root = json_loads(m.value.c_str(), 0, &err);
+  if (!json_is_array(root)) return;
+  string key = json_string_value(json_array_get(root,0));
   if (key == "__proto__") return;
   map<string,Message>::iterator it = store.find(key);
   if ( (it != store.end()) && (it->second.version > m.version) ) {
@@ -18,6 +37,7 @@ void applyUpdate(const string & key, const Message & m) {
     return;
   }
   store[key] = m;
+  json_decref(root);
   return;
 }
 
@@ -59,19 +79,39 @@ void on_connection(uv_connect_t * req, int status) {
 }
 
 void on_sync() {
+  
   cout << "Closing connection and printing out store contents:" << endl << endl;
   uv_close((uv_handle_t *) stream, NULL);
-  for (map<string,Message>::iterator it = store.begin(); it != store.end(); ++it) {
-    cout << it->second.value << endl;
-  }
+  outputStoreContents();
 }
+
 
 int main() {  
   sc.setSyncCallback(on_sync);
   string id = sc.createID();
+  
+  cout << "Some basic protocol only tests" << endl;
+  string msg1 = "[[\"Value 1\", {\"id\":\"Value 1\", \"val\":1}], 1386248706714.002, \"FAKESOURCE\"]\n";
+  sc.parseLine(msg1, applyUpdate);
+  outputStoreContents();
+  msg1 = "[[\"Value 1\", {\"id\":\"Value 1\", \"val\":2}], 1386248706714.003, \"FAKESOURCE\"]\n";
+  sc.parseLine(msg1, applyUpdate);
+  outputStoreContents();
+  msg1 = "[[\"Value 1\", {\"id\":\"Value 1\", \"val\":3}], 1386248706714.002, \"FAKESOURCE2\"]\n";
+  sc.parseLine(msg1, applyUpdate);
+  outputStoreContents();
+  
+  cout << "history?" << endl;
+  map<string,double> source_list;
+  source_list["FAKESOURCE"] = 1386248706714.002;
+  outputHistoryContents(source_list);
+  
   string out = sc.getDigest();
   
-  cout << out << endl;
+  cout << "DIGEST: " << out << endl;
+  cout << "done" << endl;
+  //return 0;
+  
   
   uv_tcp_t socket;
   uv_tcp_init(uv_default_loop(), &socket);

@@ -20,12 +20,13 @@ class ScuttleButt {
     
     double getTimeStamp();
     string createID();
-    void getMessage(iostream &, void(*callbackFunction)(const string &, const Message &) = NULL);
+    void getMessage(iostream &, void(*callbackFunction)(const Message &) = NULL);
     string getDigest();
-    void parseLine(const string & str, void(*callbackFunction)(const string &, const Message &) = NULL);
+    void parseLine(const string & str, void(*callbackFunction)(const Message &) = NULL);
     bool filter(const Message &, map<string,double>);
     vector<Message> getUpdateHistory(map<string,Message> &, map<string,double>);
-    map<string,Message> getStore();
+  
+    map<string,double> getSources();
   
     void setSyncCallback(void(*cb)());
     

@@ -11,7 +11,11 @@ void ScuttleButt::setSyncCallback(void(*cb)()) {
 bool ScuttleButt::filter(const Message & update, map<string,double> source_list) {
   string src = update.id;
   double ts = update.version;
-  return (sources.find(src) == sources.end()) || sources.find(src)->second < ts;
+  return (source_list.find(src) == source_list.end()) || source_list.find(src)->second < ts;
+}
+
+map<string,double> ScuttleButt::getSources() {
+  return sources;
 }
 
 vector<Message> ScuttleButt::getUpdateHistory(map<string,Message> & store, map<string,double> source_list) {
@@ -46,7 +50,7 @@ string ScuttleButt::createID() {
   return retval;
 }
 
-void ScuttleButt::getMessage(iostream & stream, void(*callbackFunction)(const string &, const Message &)) {
+void ScuttleButt::getMessage(iostream & stream, void(*callbackFunction)(const Message &)) {
   string line;
   getline(stream, line);
   parseLine(line, callbackFunction);
@@ -74,7 +78,7 @@ string ScuttleButt::getDigest() {
   return retval;
 }
 
-void ScuttleButt::parseLine(const string & str, void(*callbackFunction)(const string &, const Message &)) {
+void ScuttleButt::parseLine(const string & str, void(*callbackFunction)(const Message &)) {
   if (str == "\"SYNC\"") {
     if (sync) sync();
     return;
@@ -94,8 +98,9 @@ void ScuttleButt::parseLine(const string & str, void(*callbackFunction)(const st
     }
   } else if (json_is_array(root)) {
     json_t * data = json_array_get(root,0);
-    json_t * key  = json_array_get(data,0);
-    json_t * value = json_array_get(data,1);
+    //if (!json_is_array(data)) return;
+    //json_t * key  = json_array_get(data,0);
+    //json_t * value = json_array_get(data,1);
     json_t * j_ts = json_array_get(root,1);
     json_t * j_id = json_array_get(root,2);
     double now = getTimeStamp();
@@ -122,11 +127,12 @@ void ScuttleButt::parseLine(const string & str, void(*callbackFunction)(const st
       Message m;
       m.id = id_value;
       m.version = ts_value;
-      char * message_payload = json_dumps(value, JSON_COMPACT);
+      // We don't want to impose strict requirements on the payload...
+      char * message_payload = json_dumps(data, JSON_COMPACT | JSON_ENCODE_ANY);
       m.value = message_payload;
       free(message_payload);
       json_decref(root);
-      callbackFunction(json_string_value(key), m);
+      callbackFunction(m);
     }
   }
   
