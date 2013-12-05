@@ -32,11 +32,10 @@ void parse_read(uv_stream_t * stream, ssize_t nread, const uv_buf_t * buf) {
   if (nread < 0) {
     uv_close((uv_handle_t *) stream, NULL);
   } else if (nread > 0) {
-    string input = buf->base;
-    stringstream ss(input);
-    string output;
-    while(getline(ss,output,'\n'))
-      sc.parseLine(output, applyUpdate);
+    stringstream ss(buf->base);
+    while(ss.peek() != EOF) {
+      sc.getMessage(ss,applyUpdate);
+    }
   }
   free(buf->base);
 }
@@ -67,7 +66,7 @@ void on_sync() {
   }
 }
 
-int main() {
+int main() {  
   sc.setSyncCallback(on_sync);
   string id = sc.createID();
   string out = sc.getDigest();

@@ -20,7 +20,7 @@ class ScuttleButt {
     
     double getTimeStamp();
     string createID();
-    string getMessage(iostream &);
+    void getMessage(iostream &, void(*callbackFunction)(const string &, const Message &) = NULL);
     string getDigest();
     void parseLine(const string & str, void(*callbackFunction)(const string &, const Message &) = NULL);
     bool filter(const Message &, map<string,double>);

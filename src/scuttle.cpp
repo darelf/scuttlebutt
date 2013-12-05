@@ -46,10 +46,10 @@ string ScuttleButt::createID() {
   return retval;
 }
 
-string ScuttleButt::getMessage(iostream & stream) {
+void ScuttleButt::getMessage(iostream & stream, void(*callbackFunction)(const string &, const Message &)) {
   string line;
   getline(stream, line);
-  return line;
+  parseLine(line, callbackFunction);
 }
 
 /** Also known as the "digest", it contains a list of all the
@@ -125,6 +125,7 @@ void ScuttleButt::parseLine(const string & str, void(*callbackFunction)(const st
       char * message_payload = json_dumps(value, JSON_COMPACT);
       m.value = message_payload;
       free(message_payload);
+      json_decref(root);
       callbackFunction(json_string_value(key), m);
     }
   }
