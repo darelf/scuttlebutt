@@ -1,6 +1,7 @@
 lib_LIBRARIES = libscuttle.a
 libscuttle_a_SOURCES = scuttle.hpp scuttle.cpp
 libscuttle_a_CPPFLAGS = @JANSSON_CFLAGS@
+include_HEADERS = scuttle.hpp
 
 bin_PROGRAMS = scuttlebutt
 scuttlebutt_SOURCES = main.cpp
