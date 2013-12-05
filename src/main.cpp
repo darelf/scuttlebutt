@@ -6,32 +6,32 @@
 using namespace std;
 
 ScuttleButt sc;
-map<string,Message> store; // Just a default, in-memory, store...
+map<string,ScuttleMessage> store; // Just a default, in-memory, store...
 
 uv_stream_t * stream;
 
 void outputStoreContents() {
-  for (map<string,Message>::iterator it = store.begin(); it != store.end(); ++it) {
+  for (map<string,ScuttleMessage>::iterator it = store.begin(); it != store.end(); ++it) {
     cout << it->second.id << ": " << it->second.value << endl;
   }
 }
 
 void outputHistoryContents(map<string,double> & source_list) {
-  vector<Message> hist = sc.getUpdateHistory(store, source_list);
-  for (vector<Message>::iterator it = hist.begin(); it != hist.end(); ++it) {
+  vector<ScuttleMessage> hist = sc.getUpdateHistory(store, source_list);
+  for (vector<ScuttleMessage>::iterator it = hist.begin(); it != hist.end(); ++it) {
     cout << it->value << endl;
   }
 }
 
 // For this test, the payload should be an array whose first value is the key
-void applyUpdate(const Message & m) {
+void applyUpdate(const ScuttleMessage & m) {
   json_t * root;
   json_error_t err;
   root = json_loads(m.value.c_str(), 0, &err);
   if (!json_is_array(root)) return;
   string key = json_string_value(json_array_get(root,0));
   if (key == "__proto__") return;
-  map<string,Message>::iterator it = store.find(key);
+  map<string,ScuttleMessage>::iterator it = store.find(key);
   if ( (it != store.end()) && (it->second.version > m.version) ) {
     //This is old data...
     return;
@@ -110,7 +110,7 @@ int main() {
   
   cout << "DIGEST: " << out << endl;
   cout << "done" << endl;
-  //return 0;
+  return 0;
   
   
   uv_tcp_t socket;

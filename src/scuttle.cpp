@@ -1,6 +1,6 @@
 #include "scuttle.hpp"
 
-bool sort_function (const Message & a, const Message & b) {
+bool sort_function (const ScuttleMessage & a, const ScuttleMessage & b) {
   return (a.version < b.version) || (a.id < b.id);
 }
 
@@ -8,7 +8,7 @@ void ScuttleButt::setSyncCallback(void(*cb)()) {
   sync = cb;
 }
 
-bool ScuttleButt::filter(const Message & update, map<string,double> source_list) {
+bool ScuttleButt::filter(const ScuttleMessage & update, map<string,double> source_list) {
   string src = update.id;
   double ts = update.version;
   return (source_list.find(src) == source_list.end()) || source_list.find(src)->second < ts;
@@ -18,9 +18,9 @@ map<string,double> ScuttleButt::getSources() {
   return sources;
 }
 
-vector<Message> ScuttleButt::getUpdateHistory(map<string,Message> & store, map<string,double> source_list) {
-  vector<Message> m;
-  for(map<string,Message>::iterator it = store.begin(); it != store.end(); ++it) {
+vector<ScuttleMessage> ScuttleButt::getUpdateHistory(map<string,ScuttleMessage> & store, map<string,double> source_list) {
+  vector<ScuttleMessage> m;
+  for(map<string,ScuttleMessage>::iterator it = store.begin(); it != store.end(); ++it) {
     if ( filter(it->second, source_list) ) {
       m.push_back(it->second);
     }
@@ -50,7 +50,7 @@ string ScuttleButt::createID() {
   return retval;
 }
 
-void ScuttleButt::getMessage(iostream & stream, void(*callbackFunction)(const Message &)) {
+void ScuttleButt::getMessage(iostream & stream, void(*callbackFunction)(const ScuttleMessage &)) {
   string line;
   getline(stream, line);
   parseLine(line, callbackFunction);
@@ -78,7 +78,7 @@ string ScuttleButt::getDigest() {
   return retval;
 }
 
-void ScuttleButt::parseLine(const string & str, void(*callbackFunction)(const Message &)) {
+void ScuttleButt::parseLine(const string & str, void(*callbackFunction)(const ScuttleMessage &)) {
   if (str == "\"SYNC\"") {
     if (sync) sync();
     return;
@@ -124,7 +124,7 @@ void ScuttleButt::parseLine(const string & str, void(*callbackFunction)(const Me
     }
 
     if (callbackFunction) {
-      Message m;
+      ScuttleMessage m;
       m.id = id_value;
       m.version = ts_value;
       // We don't want to impose strict requirements on the payload...

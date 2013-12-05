@@ -10,7 +10,7 @@
 #include <sys/time.h>
 #include <jansson.h>
 
-#include "message.hpp"
+#include "scuttlemessage.hpp"
 
 using namespace std;
 
@@ -20,11 +20,11 @@ class ScuttleButt {
     
     double getTimeStamp();
     string createID();
-    void getMessage(iostream &, void(*callbackFunction)(const Message &) = NULL);
+    void getMessage(iostream &, void(*callbackFunction)(const ScuttleMessage &) = NULL);
     string getDigest();
-    void parseLine(const string & str, void(*callbackFunction)(const Message &) = NULL);
-    bool filter(const Message &, map<string,double>);
-    vector<Message> getUpdateHistory(map<string,Message> &, map<string,double>);
+    void parseLine(const string & str, void(*callbackFunction)(const ScuttleMessage &) = NULL);
+    bool filter(const ScuttleMessage &, map<string,double>);
+    vector<ScuttleMessage> getUpdateHistory(map<string,ScuttleMessage> &, map<string,double>);
   
     map<string,double> getSources();
   

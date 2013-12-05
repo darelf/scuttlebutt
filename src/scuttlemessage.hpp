@@ -1,8 +1,8 @@
 #include <string>
 
-class Message {
+class ScuttleMessage {
   public:
-    Message() {};
+    ScuttleMessage() {};
     std::string value;   //payload
     std::string id;      // source id
     double version; // timestamp... seconds since epoch, incl. fractional part
