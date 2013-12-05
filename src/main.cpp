@@ -42,9 +42,10 @@ void applyUpdate(const Message & m) {
 }
 
 void alloc_buffer(uv_handle_t * handle, size_t suggested_size, uv_buf_t * buf) {
+  cout << "buffer cb " << suggested_size << endl;
   buf->base = (char *)malloc(suggested_size);
   buf->len = suggested_size;
-  memset(buf->base, 0, suggested_size);
+  memset(buf->base, 0, suggested_size); // don't know if this is necessary...
 }
 
 // Read the data from the server and parse it.
@@ -62,11 +63,11 @@ void parse_read(uv_stream_t * stream, ssize_t nread, const uv_buf_t * buf) {
 
 void on_connection(uv_connect_t * req, int status) {
   if (status < 0) return;
-  // setup the buffer containing the digest message...
+  // setup the buffer containing the digest message on the stack...
   string out = sc.getDigest() + "\n";
-  char * outstr = new char[out.length()+1];
-  memset(outstr, 0, out.length()+1);
-  out.copy(outstr, out.length()+1);
+  char outstr[out.size()+1];
+  strncpy(outstr, out.c_str(), out.size()+1);
+  outstr[out.size()] = '\0';
   uv_buf_t outbuf = uv_buf_init(outstr, out.length());
   
   //setup the read callback, and send out digest message...
@@ -75,7 +76,6 @@ void on_connection(uv_connect_t * req, int status) {
   
   uv_read_start((uv_stream_t *)stream, alloc_buffer, parse_read);
   uv_write(&write_req, stream, &outbuf, 1, NULL);
-  delete[] outstr;
 }
 
 void on_sync() {
