@@ -18,10 +18,13 @@ PKG_CHECK_MODULES([JANSSON], [jansson])
 AC_CHECK_HEADERS([sys/time.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
+AC_CHECK_HEADER_STDBOOL
+AC_TYPE_SIZE_T
+AC_TYPE_SSIZE_T
 
 # Checks for library functions.
-AC_CHECK_FUNCS([memset])
-AC_CHECK_FUNCS([gettimeofday])
+AC_FUNC_MALLOC
+AC_CHECK_FUNCS([gettimeofday memset])
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile])
