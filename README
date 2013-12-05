@@ -4,6 +4,12 @@ WORK IN PROGRESS - DOES NOT DO ALL THE THINGS YET
 
 ScuttleButt library (See http://www.cs.cornell.edu/home/rvr/papers/flowgossip.pdf)
 
+( This project was originally conceived by reading the source code of https://github.com/dominictarr/scuttlebutt
+  and the testing that I do is done against that implementation, meaning it should be compatible with apps
+  built using his module.
+  
+  I have no shame. )
+
 This project depends on jansson for JSON processing: https://github.com/akheron/jansson
 
 
