@@ -8,6 +8,10 @@ void ScuttleButt::setSyncCallback(void(*cb)()) {
   sync = cb;
 }
 
+void ScuttleButt::setHandshakeCallback(void(*cb)(map<string,double>)) {
+  handshake = cb;
+}
+
 bool ScuttleButt::filter(const ScuttleMessage & update, map<string,double> source_list) {
   string src = update.id;
   double ts = update.version;
@@ -28,7 +32,6 @@ vector<ScuttleMessage> ScuttleButt::getUpdateHistory(map<string,ScuttleMessage> 
   sort(m.begin(), m.end(), sort_function);
   return m;
 }
-
 
 string ScuttleButt::createID() {
   srand(time(NULL));
@@ -79,6 +82,7 @@ string ScuttleButt::getDigest() {
 }
 
 void ScuttleButt::parseLine(const string & str, void(*callbackFunction)(const ScuttleMessage &)) {
+  cout << "parsing message: " << str << endl;
   if (str == "\"SYNC\"") {
     if (sync) sync();
     return;
@@ -94,7 +98,18 @@ void ScuttleButt::parseLine(const string & str, void(*callbackFunction)(const Sc
   if (json_is_object(root)) {
     json_t * data = json_object_get(root, "id");
     if (data) {
-      cout << "Server Digest: " << str << endl;
+      //cout << "Server Digest: " << str << endl;
+      json_t * digest_data = json_object_get(root, "clock");
+      if (clock && handshake) {
+        map<string,double> digest;
+        const char * key;
+        json_t * value;
+        json_object_foreach(digest_data, key, value) {
+          //cout << key << " : " << json_real_value(value) << " -- from server digest" << endl;
+          digest[key] = json_real_value(value);
+        }
+        handshake(digest);
+      }
     }
   } else if (json_is_array(root)) {
     json_t * data = json_array_get(root,0);
@@ -135,7 +150,6 @@ void ScuttleButt::parseLine(const string & str, void(*callbackFunction)(const Sc
       callbackFunction(m);
     }
   }
-  
   json_decref(root);
 }
 

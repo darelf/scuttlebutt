@@ -7,6 +7,7 @@ using namespace std;
 
 ScuttleButt sc;
 map<string,ScuttleMessage> store; // Just a default, in-memory, store...
+map<string,double> remote_digest;
 
 uv_stream_t * stream;
 
@@ -42,7 +43,6 @@ void applyUpdate(const ScuttleMessage & m) {
 }
 
 void alloc_buffer(uv_handle_t * handle, size_t suggested_size, uv_buf_t * buf) {
-  cout << "buffer cb " << suggested_size << endl;
   buf->base = (char *)malloc(suggested_size);
   buf->len = suggested_size;
   memset(buf->base, 0, suggested_size); // don't know if this is necessary...
@@ -58,7 +58,8 @@ void parse_read(uv_stream_t * stream, ssize_t nread, const uv_buf_t * buf) {
       sc.getMessage(ss,applyUpdate);
     }
   }
-  free(buf->base);
+  if (buf->base)
+    free(buf->base);
 }
 
 void on_connection(uv_connect_t * req, int status) {
@@ -79,15 +80,36 @@ void on_connection(uv_connect_t * req, int status) {
 }
 
 void on_sync() {
-  
-  cout << "Closing connection and printing out store contents:" << endl << endl;
-  uv_close((uv_handle_t *) stream, NULL);
-  outputStoreContents();
+  cout << "Received SYNC" << endl;
+  //take the remote digest and calculate updates that need to be sent
+  vector<ScuttleMessage> hist = sc.getUpdateHistory(store, remote_digest);
+  for (vector<ScuttleMessage>::iterator it = hist.begin(); it != hist.end(); ++it) {
+    string out = it->toJSON();
+    char outstr[out.size()+1];
+    strncpy(outstr, out.c_str(), out.size()+1);
+    outstr[out.size()] = '\0';
+    uv_buf_t outbuf = uv_buf_init(outstr, out.size());
+    uv_write_t write_req;
+    uv_write(&write_req, stream, &outbuf, 1, NULL);
+  }
+  char outstr[8] = "\"SYNC\"\n";
+  outstr[7] = '\0';
+  uv_buf_t outbuf = uv_buf_init(outstr, 7);
+  uv_write_t write_req;
+  uv_write(&write_req, stream, &outbuf, 1, NULL);
+  cout << "finished processing handshake - sent SYNC" << endl;
+  //cout << "Closing connection and printing out store contents:" << endl << endl;
+  //uv_close((uv_handle_t *) stream, NULL);
+  //outputStoreContents();
 }
 
+void on_handshake(map<string,double> digest) {
+  remote_digest = digest;
+}
 
 int main() {  
   sc.setSyncCallback(on_sync);
+  sc.setHandshakeCallback(on_handshake);
   string id = sc.createID();
   
   cout << "Some basic protocol only tests" << endl;
@@ -110,8 +132,7 @@ int main() {
   
   cout << "DIGEST: " << out << endl;
   cout << "done" << endl;
-  return 0;
-  
+  //return 0;
   
   uv_tcp_t socket;
   uv_tcp_init(uv_default_loop(), &socket);

@@ -29,10 +29,12 @@ class ScuttleButt {
     map<string,double> getSources();
   
     void setSyncCallback(void(*cb)());
+    void setHandshakeCallback(void(*cb)(map<string,double>));
     
   private:
     string client_id;
     map<string,double> sources;
     void (*sync)();
+    void (*handshake)(map<string,double>);
 };
 
