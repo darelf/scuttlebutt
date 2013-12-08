@@ -100,7 +100,7 @@ void ScuttleButt::parseLine(const string & str, void(*callbackFunction)(const Sc
     if (data) {
       //cout << "Server Digest: " << str << endl;
       json_t * digest_data = json_object_get(root, "clock");
-      if (clock && handshake) {
+      if (digest_data && handshake) {
         map<string,double> digest;
         const char * key;
         json_t * value;
@@ -113,9 +113,6 @@ void ScuttleButt::parseLine(const string & str, void(*callbackFunction)(const Sc
     }
   } else if (json_is_array(root)) {
     json_t * data = json_array_get(root,0);
-    //if (!json_is_array(data)) return;
-    //json_t * key  = json_array_get(data,0);
-    //json_t * value = json_array_get(data,1);
     json_t * j_ts = json_array_get(root,1);
     json_t * j_id = json_array_get(root,2);
     double now = getTimeStamp();
