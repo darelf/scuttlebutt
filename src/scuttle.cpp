@@ -156,4 +156,3 @@ double ScuttleButt::getTimeStamp() {
   double dTime = curTime.tv_sec + (curTime.tv_usec / 1000.0);
   return dTime;
 }
-

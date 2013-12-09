@@ -13,7 +13,7 @@ AC_PROG_RANLIB
 
 # Checks for libraries.
 PKG_CHECK_MODULES([JANSSON], [jansson])
-AC_SEARCH_LIBS([clock_gettime], [rt], [], [AC_MSG_ERROR([unable to find clock_gettime() function])])
+AC_SEARCH_LIBS([pthread_create], [rt], [], [AC_MSG_ERROR([rt library])])
 
 # Checks for header files.
 AC_CHECK_HEADERS([sys/time.h])

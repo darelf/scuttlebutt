@@ -48,10 +48,14 @@ void alloc_buffer(uv_handle_t * handle, size_t suggested_size, uv_buf_t * buf) {
   memset(buf->base, 0, suggested_size); // don't know if this is necessary...
 }
 
+void on_close(uv_handle_t * handle) {
+  cout << "remote endpoint closed connection" << endl;
+}
+
 // Read the data from the server and parse it.
 void parse_read(uv_stream_t * stream, ssize_t nread, const uv_buf_t * buf) {
   if (nread < 0) {
-    uv_close((uv_handle_t *) stream, NULL);
+    uv_close((uv_handle_t *) stream, on_close);
   } else if (nread > 0) {
     stringstream ss(buf->base);
     while(ss.peek() != EOF) {
@@ -91,6 +95,7 @@ void on_sync() {
     uv_buf_t outbuf = uv_buf_init(outstr, out.size());
     uv_write_t write_req;
     uv_write(&write_req, stream, &outbuf, 1, NULL);
+    
   }
   char outstr[8] = "\"SYNC\"\n";
   outstr[7] = '\0';
@@ -98,6 +103,7 @@ void on_sync() {
   uv_write_t write_req;
   uv_write(&write_req, stream, &outbuf, 1, NULL);
   cout << "finished processing handshake - sent SYNC" << endl;
+  
   //cout << "Closing connection and printing out store contents:" << endl << endl;
   //uv_close((uv_handle_t *) stream, NULL);
   //outputStoreContents();
@@ -119,7 +125,10 @@ int main() {
   msg1 = "[[\"Value 1\", {\"id\":\"Value 1\", \"val\":2}], 1386248706714.003, \"FAKESOURCE\"]\n";
   sc.parseLine(msg1, applyUpdate);
   outputStoreContents();
-  msg1 = "[[\"Value 1\", {\"id\":\"Value 1\", \"val\":3}], 1386248706714.002, \"FAKESOURCE2\"]\n";
+  msg1 = "[[\"Value 1\", {\"id\":\"Value 1\", \"val\":3}], 1386248706715.002, \"FAKESOURCE2\"]\n";
+  sc.parseLine(msg1, applyUpdate);
+  outputStoreContents();
+  msg1 = "[[\"Value 1\", {\"id\":\"Value 1\", \"val\":4}], 1386248706714.002, \"FAKESOURCE2\"]\n";
   sc.parseLine(msg1, applyUpdate);
   outputStoreContents();
   
