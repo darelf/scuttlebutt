@@ -96,6 +96,7 @@ void ScuttleButt::parseLine(const string & str, void(*callbackFunction)(const Sc
     return;
   }
   if (json_is_object(root)) {
+    // This is a digest...
     json_t * data = json_object_get(root, "id");
     if (data) {
       //cout << "Server Digest: " << str << endl;
@@ -112,6 +113,7 @@ void ScuttleButt::parseLine(const string & str, void(*callbackFunction)(const Sc
       }
     }
   } else if (json_is_array(root)) {
+    // This is a message...
     json_t * data = json_array_get(root,0);
     json_t * j_ts = json_array_get(root,1);
     json_t * j_id = json_array_get(root,2);
@@ -135,15 +137,17 @@ void ScuttleButt::parseLine(const string & str, void(*callbackFunction)(const Sc
       sources[id_value] = ts_value;
     }
 
+    
+    ScuttleMessage m;
+    m.id = id_value;
+    m.version = ts_value;
+    // We don't want to impose strict requirements on the payload...
+    char * message_payload = json_dumps(data, JSON_COMPACT | JSON_ENCODE_ANY);
+    m.value = message_payload;
+    free(message_payload);
+    json_decref(root);
+    
     if (callbackFunction) {
-      ScuttleMessage m;
-      m.id = id_value;
-      m.version = ts_value;
-      // We don't want to impose strict requirements on the payload...
-      char * message_payload = json_dumps(data, JSON_COMPACT | JSON_ENCODE_ANY);
-      m.value = message_payload;
-      free(message_payload);
-      json_decref(root);
       callbackFunction(m);
     }
   }

@@ -1,6 +1,5 @@
 ScuttleButt
 ===========
-WORK IN PROGRESS - DOES NOT DO ALL THE THINGS YET
 
 ScuttleButt library (See http://www.cs.cornell.edu/home/rvr/papers/flowgossip.pdf)
 
